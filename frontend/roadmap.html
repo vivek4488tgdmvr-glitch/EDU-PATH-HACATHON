@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pathloom - Roadmap</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="shared.css" />
+</head>
+<body class="min-h-screen">
+  <div class="shell mx-auto px-5 py-6 sm:px-8 sm:py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-8">
+      <div class="flex items-center gap-2.5">
+        <span class="text-xl">✦</span>
+        <span class="text-xl font-bold tracking-tight">Pathloom</span>
+      </div>
+      <div id="navBar" class="tab-bar surface rounded-xl p-1"></div>
+      <span></span>
+    </div>
+
+    <p class="section-kicker mb-2">Your roadmap</p>
+    <h2 class="text-3xl font-semibold mb-1">A plan that moves with you</h2>
+    <p id="roadmapProgress" class="text-sm text-slate-400 mb-4"></p>
+    <div id="stepper" class="stepper mb-8"></div>
+    <p id="adjustmentsNote" class="text-xs text-emerald-400 mb-3 hidden"></p>
+    <div id="weeks" class="space-y-4"></div>
+    <p id="selfCheck" class="text-xs text-slate-500 mt-4 italic"></p>
+
+    <footer class="mt-14 text-center text-xs text-slate-600">
+      A learning path that adapts to your real life.
+    </footer>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    const state = requirePlan();
+    if (state) {
+      renderNavBar("roadmap");
+
+      const weeks = state.plan?.weekly_plan || [];
+      const completedWeeks = state.completedWeeks || [];
+      const current = getCurrentWeek(state.plan, completedWeeks);
+
+      document.getElementById("roadmapProgress").textContent = current
+        ? `Week ${current.week} of ${weeks.length + completedWeeks.length} · ${completedWeeks.length} completed`
+        : "No roadmap yet.";
+
+      const stepperEl = document.getElementById("stepper");
+      const allWeekNumbers = [...completedWeeks, ...weeks.map((w) => w.week)].sort((a, b) => a - b);
+      stepperEl.innerHTML = "";
+      allWeekNumbers.forEach((num, i) => {
+        const dot = document.createElement("div");
+        const isDone = completedWeeks.includes(num);
+        const stepState = isDone ? "done" : (current && num === current.week ? "current" : "upcoming");
+        dot.className = `step-dot ${stepState}`;
+        dot.textContent = isDone ? "✓" : num;
+        stepperEl.appendChild(dot);
+        if (i < allWeekNumbers.length - 1) {
+          const line = document.createElement("div");
+          line.className = `step-line ${isDone ? "done" : ""}`;
+          stepperEl.appendChild(line);
+        }
+      });
+
+      const adjustmentsNoteEl = document.getElementById("adjustmentsNote");
+      if (state.plan?.adjustments_made?.length) {
+        adjustmentsNoteEl.textContent = "Adjustments made: " + state.plan.adjustments_made.join("; ");
+        adjustmentsNoteEl.classList.remove("hidden");
+      }
+
+      document.getElementById("weeks").innerHTML = weeks.map((w) => `
+        <div class="surface rounded-xl p-4 ${current && w.week === current.week ? "ring-1 ring-amber-300/50" : ""}">
+          <h3 class="font-semibold text-amber-300">Week ${w.week}: ${w.focus}</h3>
+          <ul class="list-disc list-inside text-sm mt-2 text-slate-300">
+            ${w.objectives.map((o) => `<li>${o}</li>`).join("")}
+          </ul>
+          <p class="text-xs text-slate-500 mt-2">Resources: ${w.resources.join(", ")}</p>
+          <p class="text-sm mt-2"><span class="text-emerald-400">Practice:</span> ${w.practice_task}</p>
+        </div>`).join("");
+
+      document.getElementById("selfCheck").textContent = "Self-check: " + (state.plan?.self_check_notes || "");
+    }
+  </script>
+</body>
+</html>

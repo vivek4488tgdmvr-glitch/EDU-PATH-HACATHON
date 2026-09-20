@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pathloom - Today</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="shared.css" />
+</head>
+<body class="min-h-screen">
+  <div class="shell mx-auto px-5 py-6 sm:px-8 sm:py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-8">
+      <div class="flex items-center gap-2.5">
+        <span class="text-xl">✦</span>
+        <span class="text-xl font-bold tracking-tight">Pathloom</span>
+      </div>
+      <div id="navBar" class="tab-bar surface rounded-xl p-1"></div>
+      <span></span>
+    </div>
+
+    <p class="section-kicker mb-2">Focused on right now</p>
+    <h2 class="text-3xl font-semibold mb-1" id="todayTitle">This week</h2>
+
+    <div class="surface rounded-2xl p-6 mt-4">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-sm text-slate-400" id="todayProgressLabel">0 / 0 objectives</span>
+        <div class="skill-bar-track w-32"><div id="todayProgressBar" class="skill-bar-fill skill-fill-have" style="width:0%"></div></div>
+      </div>
+      <div id="todayChecklist"></div>
+      <div class="mt-5 pt-4 border-t border-slate-800">
+        <p class="text-sm font-medium text-slate-200 mb-2">Practice task</p>
+        <p id="todayPractice" class="text-sm text-slate-300"></p>
+      </div>
+    </div>
+
+    <div class="surface rounded-2xl p-6 mt-4">
+      <h3 class="font-semibold mb-2">Struggling with anything this week?</h3>
+      <input id="strugglingInput" type="text" placeholder="e.g. React state, async/await (comma-separated)"
+        class="field w-full rounded-xl p-3 text-sm outline-none transition mb-3" />
+      <button id="markCompleteBtn" class="primary-action rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-60">
+        Mark this week complete & update my plan
+      </button>
+    </div>
+
+    <footer class="mt-14 text-center text-xs text-slate-600">
+      A learning path that adapts to your real life.
+    </footer>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    let state = requirePlan();
+
+    function renderToday() {
+      state = getState();
+      renderNavBar("today");
+      const current = getCurrentWeek(state.plan, state.completedWeeks);
+      const titleEl = document.getElementById("todayTitle");
+      const checklistEl = document.getElementById("todayChecklist");
+      const practiceEl = document.getElementById("todayPractice");
+      const progressLabel = document.getElementById("todayProgressLabel");
+      const progressBar = document.getElementById("todayProgressBar");
+      const markBtn = document.getElementById("markCompleteBtn");
+      const strugglingInput = document.getElementById("strugglingInput");
+
+      strugglingInput.value = (state.strugglingTopics || []).join(", ");
+
+      if (!current) {
+        titleEl.textContent = "No active week";
+        checklistEl.innerHTML = `<p class="text-sm text-slate-500">No roadmap yet.</p>`;
+        practiceEl.textContent = "";
+        progressLabel.textContent = "0 / 0 objectives";
+        progressBar.style.width = "0%";
+        markBtn.disabled = true;
+        return;
+      }
+
+      titleEl.textContent = `Week ${current.week}: ${current.focus}`;
+      checklistEl.innerHTML = current.objectives.map((o, i) => {
+        const key = `${current.week}:${i}`;
+        const checked = (state.todayChecked || []).includes(key);
+        return `
+          <div class="checklist-item ${checked ? "done" : ""}">
+            <input type="checkbox" data-key="${key}" ${checked ? "checked" : ""} />
+            <label>${o}</label>
+          </div>`;
+      }).join("");
+      practiceEl.textContent = current.practice_task;
+
+      const total = current.objectives.length;
+      const done = current.objectives.filter((_, i) => (state.todayChecked || []).includes(`${current.week}:${i}`)).length;
+      progressLabel.textContent = `${done} / ${total} objectives`;
+      progressBar.style.width = total ? `${Math.round((done / total) * 100)}%` : "0%";
+      markBtn.disabled = false;
+
+      checklistEl.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+        cb.addEventListener("change", () => {
+          const checked = new Set(state.todayChecked || []);
+          if (cb.checked) checked.add(cb.dataset.key);
+          else checked.delete(cb.dataset.key);
+          setState({ todayChecked: [...checked] });
+          renderToday();
+        });
+      });
+    }
+
+    if (state) renderToday();
+
+    document.getElementById("markCompleteBtn").addEventListener("click", async () => {
+      state = getState();
+      const current = getCurrentWeek(state.plan, state.completedWeeks);
+      if (!current) return;
+      const btn = document.getElementById("markCompleteBtn");
+
+      const strugglingTopics = document.getElementById("strugglingInput").value
+        .split(",").map((s) => s.trim()).filter(Boolean);
+      const completedWeeks = [...new Set([...(state.completedWeeks || []), current.week])];
+
+      // Demo data has no backend behind it - just advance locally.
+      if (state.plan?.self_check_notes?.includes("demo data")) {
+        setState({ completedWeeks, strugglingTopics, todayChecked: [] });
+        window.location.href = "roadmap.html";
+        return;
+      }
+
+      setBusy(btn, "Agent is adjusting...");
+      try {
+        const res = await fetch(`${BASE_URL}/api/replan`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ profile: state.profile, previousPlan: state.plan, progress: { completedWeeks, strugglingTopics } }),
+        });
+        if (!res.ok) throw new Error((await res.json()).error || "Request failed");
+        const data = await res.json();
+        setState({ plan: data.plan, trail: data.trail, completedWeeks, strugglingTopics, todayChecked: [] });
+        window.location.href = "roadmap.html";
+      } catch (err) {
+        alert("Error updating plan: " + err.message);
+        clearBusy(btn);
+        btn.textContent = "Mark this week complete & update my plan";
+      }
+    });
+  </script>
+</body>
+</html>

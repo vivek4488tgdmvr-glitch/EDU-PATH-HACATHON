@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pathloom - Report</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="shared.css" />
+</head>
+<body class="min-h-screen">
+  <div class="shell mx-auto px-5 py-6 sm:px-8 sm:py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-8">
+      <div class="flex items-center gap-2.5">
+        <span class="text-xl">✦</span>
+        <span class="text-xl font-bold tracking-tight">Pathloom</span>
+      </div>
+      <div id="navBar" class="tab-bar surface rounded-xl p-1"></div>
+      <span></span>
+    </div>
+
+    <p class="section-kicker mb-2">How you're doing</p>
+    <h2 class="text-3xl font-semibold mb-4">Progress report</h2>
+    <button id="reportBtn" class="primary-action rounded-lg px-5 py-2.5 text-sm font-semibold disabled:opacity-60 mb-4">
+      Generate progress report
+    </button>
+    <div id="reportSection" class="surface rounded-2xl p-6 hidden fade-in">
+      <div id="reportContent" class="text-sm space-y-3"></div>
+    </div>
+
+    <footer class="mt-14 text-center text-xs text-slate-600">
+      A learning path that adapts to your real life.
+    </footer>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    const state = requirePlan();
+    if (state) {
+      renderNavBar("report");
+
+      document.getElementById("reportBtn").addEventListener("click", async () => {
+        const btn = document.getElementById("reportBtn");
+        const reportSection = document.getElementById("reportSection");
+        const reportContent = document.getElementById("reportContent");
+        const current = getState();
+
+        setBusy(btn, "Generating...");
+        try {
+          const res = await fetch(`${BASE_URL}/api/progress-report`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              profile: current.profile,
+              plan: current.plan,
+              progress: { completedWeeks: current.completedWeeks, strugglingTopics: current.strugglingTopics },
+            }),
+          });
+          if (!res.ok) throw new Error((await res.json()).error || "Request failed");
+          const report = await res.json();
+          reportContent.innerHTML = `
+            <p>🟢 <span class="text-emerald-400">Skills acquired:</span> ${report.skills_acquired.join(", ") || "none yet"}</p>
+            <p>🟡 <span class="text-amber-400">Skills in progress:</span> ${report.skills_in_progress.join(", ") || "none"}</p>
+            <p>🔴 <span class="text-rose-400">Remaining gaps:</span> ${report.remaining_gaps.join(", ") || "none"}</p>
+            <p>🔵 <span class="text-indigo-400">Recommended next steps:</span> ${report.recommended_next_steps.join(", ") || "none"}</p>
+          `;
+          reportSection.classList.remove("hidden");
+        } catch (err) {
+          reportContent.textContent = "Error: " + err.message;
+          reportSection.classList.remove("hidden");
+        } finally {
+          clearBusy(btn);
+          btn.textContent = "Generate progress report";
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pathloom - Overview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="shared.css" />
+</head>
+<body class="min-h-screen">
+  <div class="shell mx-auto px-5 py-6 sm:px-8 sm:py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-8">
+      <div class="flex items-center gap-2.5">
+        <span class="text-xl">✦</span>
+        <span class="text-xl font-bold tracking-tight">Pathloom</span>
+      </div>
+      <div id="navBar" class="tab-bar surface rounded-xl p-1"></div>
+      <button id="demoBtn" class="secondary-action rounded-lg px-3 py-2 text-xs font-semibold">
+        ▶ Load demo example
+      </button>
+    </div>
+
+    <header class="mb-8">
+      <p class="section-kicker mb-3">Personal learning intelligence</p>
+      <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-3">Your Career Goal. Your Skills.<br /><span class="text-amber-300">One Adaptive Learning Path.</span></h1>
+      <p class="max-w-xl text-lg text-slate-300">Pathloom looks at what you already know, decides what you're actually missing, and builds a plan that adapts as you go — not a static syllabus.</p>
+    </header>
+
+    <div id="summaryCard" class="surface rounded-2xl p-5 mb-6 hidden fade-in">
+      <p class="section-kicker mb-2">Your plan is ready</p>
+      <div id="summaryContent" class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm"></div>
+      <a href="skills.html" class="primary-action rounded-lg px-4 py-2 text-sm font-semibold mt-4 inline-block">View my dashboard →</a>
+    </div>
+
+    <form id="profileForm" class="surface rounded-2xl p-6 sm:p-8 space-y-5">
+      <div class="flex items-start justify-between gap-4 mb-2">
+        <div>
+          <p class="section-kicker mb-2">Your starting point</p>
+          <h2 class="text-2xl font-semibold">Tell us where you're headed</h2>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-200 mb-2">What do you already know or do?</label>
+        <textarea id="skills" required rows="3" placeholder="List skills, tools, subjects, or practical experience."
+          class="field w-full rounded-xl p-3.5 text-sm outline-none transition"></textarea>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-200 mb-2">Your background</label>
+          <input id="background" type="text" placeholder="Work, education, or life experience"
+            class="field w-full rounded-xl p-3.5 text-sm outline-none transition" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-200 mb-2">Relevant experience</label>
+          <input id="experience" type="text" placeholder="Projects or practice so far"
+            class="field w-full rounded-xl p-3.5 text-sm outline-none transition" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-200 mb-2">What do you want to work toward?</label>
+        <input id="targetRole" required type="text" placeholder="A role, capability, project, or goal"
+          class="field w-full rounded-xl p-3.5 text-sm outline-none transition" />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-200 mb-2">Time available each week</label>
+          <input id="weeklyHours" type="text" placeholder="e.g. 8 hours"
+            class="field w-full rounded-xl p-3.5 text-sm outline-none transition" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-200 mb-2">Timeline</label>
+          <input id="deadline" type="text" placeholder="A date or no fixed deadline"
+            class="field w-full rounded-xl p-3.5 text-sm outline-none transition" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-200 mb-2">What would success look like?</label>
+        <input id="goal" type="text" placeholder="Describe the result you want"
+          class="field w-full rounded-xl p-3.5 text-sm outline-none transition" />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-200 mb-2">How do you learn best?</label>
+          <input id="learningStyle" type="text" placeholder="Practice, reading, video, coaching..."
+            class="field w-full rounded-xl p-3.5 text-sm outline-none transition" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-200 mb-2">Anything we should work around?</label>
+          <input id="constraints" type="text" placeholder="Budget, schedule, access, etc."
+            class="field w-full rounded-xl p-3.5 text-sm outline-none transition" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-200 mb-2">Why does this matter to you?</label>
+        <textarea id="motivation" rows="2" placeholder="What would make this plan worthwhile."
+          class="field w-full rounded-xl p-3.5 text-sm outline-none transition"></textarea>
+      </div>
+      <button type="submit" id="submitBtn"
+        class="primary-action w-full rounded-xl py-3.5 font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed">
+        Generate my path <span class="ml-1">→</span>
+      </button>
+    </form>
+    <div id="status" class="mt-4 text-sm text-slate-400"></div>
+
+    <section id="trailSection" class="mt-10 hidden fade-in">
+      <p class="section-kicker mb-2">Live agent activity</p>
+      <h2 class="text-2xl font-semibold mb-1">The thinking behind your path <span class="text-amber-300">✦</span></h2>
+      <p class="text-xs text-slate-500 mb-3">Every decision below was made live by the agent — not scripted.</p>
+      <ol id="trailList" class="space-y-2 text-sm"></ol>
+    </section>
+
+    <footer class="mt-14 text-center text-xs text-slate-600">
+      A learning path that adapts to your real life.
+    </footer>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    renderNavBar("overview");
+
+    // Rehydrate if a plan already exists (came back to this page after generating one)
+    const existing = getState();
+    if (existing.plan) {
+      showSummary(existing);
+      renderTrailList(document.getElementById("trailList"), existing.trail);
+      document.getElementById("trailSection").classList.remove("hidden");
+    }
+
+    function showSummary(state) {
+      document.getElementById("summaryContent").innerHTML = `
+        <div><p class="text-slate-500 text-xs uppercase mb-1">Target</p><p class="font-semibold">${state.profile.targetRole}</p></div>
+        <div><p class="text-slate-500 text-xs uppercase mb-1">Gaps identified</p><p class="font-semibold">${(state.plan.identified_gaps || []).length}</p></div>
+        <div><p class="text-slate-500 text-xs uppercase mb-1">Roadmap length</p><p class="font-semibold">${(state.plan.weekly_plan || []).length} weeks</p></div>
+      `;
+      document.getElementById("summaryCard").classList.remove("hidden");
+    }
+
+    const form = document.getElementById("profileForm");
+    const statusEl = document.getElementById("status");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setBusy(submitBtn, "Agent is thinking...");
+      statusEl.textContent = "Agent is analyzing your profile and may search for resources...";
+      document.getElementById("trailSection").classList.add("hidden");
+
+      const body = {
+        skills: document.getElementById("skills").value,
+        background: document.getElementById("background").value,
+        experience: document.getElementById("experience").value,
+        targetRole: document.getElementById("targetRole").value,
+        goal: document.getElementById("goal").value,
+        motivation: document.getElementById("motivation").value,
+        weeklyHours: document.getElementById("weeklyHours").value,
+        deadline: document.getElementById("deadline").value,
+        learningStyle: document.getElementById("learningStyle").value,
+        constraints: document.getElementById("constraints").value,
+      };
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/plan`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error((await res.json()).error || "Request failed");
+        const data = await res.json();
+        statusEl.textContent = "";
+        const state = setState({
+          profile: body,
+          plan: data.plan,
+          trail: data.trail,
+          completedWeeks: [],
+          strugglingTopics: [],
+          todayChecked: [],
+        });
+        showSummary(state);
+        renderTrailList(document.getElementById("trailList"), data.trail);
+        document.getElementById("trailSection").classList.remove("hidden");
+        renderNavBar("overview");
+      } catch (err) {
+        statusEl.textContent = "Error: " + err.message;
+      } finally {
+        clearBusy(submitBtn);
+      }
+    });
+
+    document.getElementById("demoBtn").addEventListener("click", () => {
+      const state = loadDemoData();
+      statusEl.textContent = "";
+      showSummary(state);
+      renderTrailList(document.getElementById("trailList"), state.trail);
+      document.getElementById("trailSection").classList.remove("hidden");
+      renderNavBar("overview");
+      window.location.href = "skills.html";
+    });
+  </script>
+</body>
+</html>

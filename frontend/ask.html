@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pathloom - Ask AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="shared.css" />
+</head>
+<body class="min-h-screen">
+  <div class="shell mx-auto px-5 py-6 sm:px-8 sm:py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-8">
+      <div class="flex items-center gap-2.5">
+        <span class="text-xl">✦</span>
+        <span class="text-xl font-bold tracking-tight">Pathloom</span>
+      </div>
+      <div id="navBar" class="tab-bar surface rounded-xl p-1"></div>
+      <span></span>
+    </div>
+
+    <p class="section-kicker mb-2">Ask about your plan</p>
+    <h2 class="text-3xl font-semibold mb-4">Anything unclear?</h2>
+    <div class="surface rounded-2xl p-6">
+      <div class="flex gap-2">
+        <input id="questionInput" type="text" placeholder="Ask why this path includes a topic or activity"
+          class="field flex-1 rounded-xl p-3 text-sm outline-none transition" />
+        <button id="askBtn" class="primary-action rounded-lg px-5 py-2.5 text-sm font-semibold disabled:opacity-60">Ask</button>
+      </div>
+      <p id="askAnswer" class="text-sm text-slate-300 mt-4 whitespace-pre-wrap"></p>
+    </div>
+
+    <footer class="mt-14 text-center text-xs text-slate-600">
+      A learning path that adapts to your real life.
+    </footer>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    const state = requirePlan();
+    if (state) {
+      renderNavBar("ask");
+
+      const askBtn = document.getElementById("askBtn");
+      const questionInput = document.getElementById("questionInput");
+      const answerEl = document.getElementById("askAnswer");
+
+      async function ask() {
+        const question = questionInput.value.trim();
+        if (!question) return;
+        const current = getState();
+        setBusy(askBtn, "");
+        answerEl.textContent = "Thinking...";
+        try {
+          const res = await fetch(`${BASE_URL}/api/ask`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ profile: current.profile, plan: current.plan, question }),
+          });
+          if (!res.ok) throw new Error((await res.json()).error || "Request failed");
+          const data = await res.json();
+          answerEl.textContent = data.answer;
+        } catch (err) {
+          answerEl.textContent = "Error: " + err.message;
+        } finally {
+          clearBusy(askBtn);
+        }
+      }
+
+      askBtn.addEventListener("click", ask);
+      questionInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") ask();
+      });
+    }
+  </script>
+</body>
+</html>

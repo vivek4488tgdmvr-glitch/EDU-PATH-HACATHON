@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pathloom - Skill Map</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="shared.css" />
+</head>
+<body class="min-h-screen">
+  <div class="shell mx-auto px-5 py-6 sm:px-8 sm:py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-8">
+      <div class="flex items-center gap-2.5">
+        <span class="text-xl">✦</span>
+        <span class="text-xl font-bold tracking-tight">Pathloom</span>
+      </div>
+      <div id="navBar" class="tab-bar surface rounded-xl p-1"></div>
+      <span></span>
+    </div>
+
+    <p class="section-kicker mb-2">Self-reported vs. agent-identified</p>
+    <h2 class="text-3xl font-semibold mb-1">Your skill map</h2>
+    <p class="text-sm text-slate-400 mb-6 max-w-xl">"Have" bars come from what you told Pathloom. "Gap" bars are what the agent decided you're missing for your target role — not a measured score, just a visual split so you can see where the work is.</p>
+    <div class="surface rounded-2xl p-6">
+      <p class="text-xs font-semibold text-emerald-300 uppercase tracking-wide mb-3">Skills you already have</p>
+      <div id="haveSkills"></div>
+      <p class="text-xs font-semibold text-rose-300 uppercase tracking-wide mb-3 mt-6">Identified gaps</p>
+      <div id="gapSkills"></div>
+    </div>
+
+    <footer class="mt-14 text-center text-xs text-slate-600">
+      A learning path that adapts to your real life.
+    </footer>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    const state = requirePlan();
+    if (state) {
+      renderNavBar("skills");
+
+      const known = (state.profile?.skills || "").split(/[,\n]/).map((s) => s.trim()).filter(Boolean);
+      const gaps = state.plan?.identified_gaps || [];
+
+      document.getElementById("haveSkills").innerHTML = known.map((s) => `
+        <div class="skill-row">
+          <div class="flex justify-between text-sm mb-1"><span>${s}</span><span class="text-emerald-300">Have</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill skill-fill-have" style="width:85%"></div></div>
+        </div>`).join("") || `<p class="text-sm text-slate-500">No skills listed yet.</p>`;
+
+      document.getElementById("gapSkills").innerHTML = gaps.map((g) => `
+        <div class="skill-row">
+          <div class="flex justify-between text-sm mb-1"><span>${g}</span><span class="text-rose-300">Gap</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill skill-fill-gap" style="width:20%"></div></div>
+        </div>`).join("") || `<p class="text-sm text-slate-500">No gaps identified yet.</p>`;
+    }
+  </script>
+</body>
+</html>
