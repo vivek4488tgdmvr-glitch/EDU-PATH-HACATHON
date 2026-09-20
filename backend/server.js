@@ -2,32 +2,18 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { runAgent, runReplan, runAsk, runProgressReport } from "./agent.js";
 
 const app = express();
+const frontendPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "frontend");
 app.use(cors());
 app.use(express.json());
+app.use(express.static(frontendPath));
 
 app.get("/", (req, res) => {
-  res.type("html").send(`
-    <!doctype html>
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <title>Pathloom Backend</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 40px; color: #111827; }
-          code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
-        </style>
-      </head>
-      <body>
-        <h1>Pathloom backend is running</h1>
-        <p>This is the API server for Pathloom.</p>
-        <p>Open the frontend UI from <code>frontend/index.html</code> or serve the frontend folder locally.</p>
-        <p>Health check: <code>GET /api/health</code></p>
-      </body>
-    </html>
-  `);
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 app.post("/api/plan", async (req, res) => {

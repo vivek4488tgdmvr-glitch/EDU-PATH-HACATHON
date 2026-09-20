@@ -2,7 +2,7 @@
 // section is now a real page, not a tab), nav rendering, and helpers
 // duplicated across pages otherwise.
 
-const BASE_URL = "http://127.0.0.1:5000"; // active local backend
+const BASE_URL = window.location.protocol === "file:" ? "http://127.0.0.1:5000" : "";
 const STORAGE_KEY = "pathloom_state_v1";
 
 const PAGES = [
